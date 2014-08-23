@@ -1,6 +1,6 @@
 -- Simple Lucian by fbragequit, v0.1
 if myHero.charName ~= "Lucian" then return end
-local version = "0.1"
+local version = "0.11"
 
 -- Honda7's autoupdate
 local AUTOUPDATE = true
