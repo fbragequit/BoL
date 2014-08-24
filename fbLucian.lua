@@ -2,16 +2,16 @@
 if myHero.charName ~= "Lucian" then return end
 local version = "0.2"
 
--- Honda7's autoupdate
+-- Honda7's autoupdate (copypasted from SOW)
 local AUTOUPDATE = true
 
 local UPDATE_HOST = "raw.github.com"
-local UPDATE_PATH = "/fbragequit/BoL/master/fbLucian.lua" .. "?rand=" .. math.random(1, 10000)
-local VERSION_PATH = "/fbragequit/BoL/master/fbLucian.version" .. "?rand=" .. math.random(1, 10000)
-local UPDATE_URL = "https://" .. UPDATE_HOST .. UPDATE_PATH
-local UPDATE_FILE_PATH = SCRIPT_PATH .. GetCurrentEnv().FILE_NAME
+local UPDATE_PATH = "/fbragequit/BoL/master/fbLucian.lua".."?rand="..math.random(1, 10000)
+local VERSION_PATH = "/fbragequit/BoL/master/fbLucian.version".."?rand="..math.random(1, 10000)
+local UPDATE_URL = "https://"..UPDATE_HOST..UPDATE_PATH
+local UPDATE_FILE_PATH = SCRIPT_PATH..GetCurrentEnv().FILE_NAME
 
-local function ScriptMsg(msg) print("<font color=\"#00ff00\"><b>fbLucian:</b></font> <font color=\"#FFFFFF\">" .. msg .. "</font>") end
+local function ScriptMsg(msg) print("<font color=\"#00ff00\"><b>fbLucian:</b></font> <font color=\"#FFFFFF\">"..msg.."</font>") end
 
 if AUTOUPDATE then
 	local ServerData = GetWebResult(UPDATE_HOST, VERSION_PATH)
@@ -19,11 +19,11 @@ if AUTOUPDATE then
 		local ServerVersion = type(tonumber(ServerData)) == "number" and tonumber(ServerData) or nil
 		if ServerVersion then
 			if tonumber(version) < ServerVersion then
-				ScriptMsg("New version available: " .. ServerVersion)
+				ScriptMsg("New version available: "..ServerVersion)
 				ScriptMsg("Updating, please don't press F9")
-				DelayAction(function() DownloadFile(UPDATE_URL, UPDATE_FILE_PATH, function() ScriptMsg("Successfully updated (" .. version .. " => " .. ServerVersion .."), press F9 twice to load the updated version.") end) end, 3)
+				DelayAction(function() DownloadFile(UPDATE_URL, UPDATE_FILE_PATH, function() ScriptMsg("Successfully updated ("..version.." => "..ServerVersion.."), press F9 twice to load the updated version.") end) end, 3)
 			else
-				ScriptMsg("You got the latest version ("..version..")")
+				ScriptMsg("You have got the latest version ("..version..")")
 			end
 		end
 	else
