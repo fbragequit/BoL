@@ -1,17 +1,17 @@
--- Simple Lucian by fbragequit, v0.1
+-- Simple Lucian by fbragequit
 if myHero.charName ~= "Lucian" then return end
-local version = "0.1"
+local version = "0.2"
 
 -- Honda7's autoupdate
 local AUTOUPDATE = true
 
 local UPDATE_HOST = "raw.githubusercontent.com"
 local UPDATE_PATH = "/fbragequit/BoL/master/fbLucian.lua" .. "?rand=" .. math.random(1, 10000)
-local VERSION_PATH = "/fbragequit/BoL/master/fbLucian.version"
+local VERSION_PATH = "/fbragequit/BoL/master/fbLucian.version" .. "?rand=" .. math.random(1, 10000)
 local UPDATE_URL = "https://" .. UPDATE_HOST .. UPDATE_PATH
 local UPDATE_FILE_PATH = SCRIPT_PATH .. GetCurrentEnv().FILE_NAME
 
-local function AutoupdaterMsg(msg) print("<font color=\"#6699ff\"><b>fbLucian:</b></font> <font color=\"#FFFFFF\">" .. msg .. "</font>") end
+local function ScriptMsg(msg) print("<font color=\"#6699ff\"><b>fbLucian:</b></font> <font color=\"#FFFFFF\">" .. msg .. "</font>") end
 
 if AUTOUPDATE then
 	local ServerData = GetWebResult(UPDATE_HOST, VERSION_PATH)
@@ -19,17 +19,18 @@ if AUTOUPDATE then
 		local ServerVersion = type(tonumber(ServerData)) == "number" and tonumber(ServerData) or nil
 		if ServerVersion then
 			if tonumber(version) < ServerVersion then
-				AutoupdaterMsg("New version available: " .. ServerVersion)
-				AutoupdaterMsg("Updating, please don't press F9")
-				DelayAction(function() DownloadFile(UPDATE_URL, UPDATE_FILE_PATH, function() AutoupdaterMsg("Successfully updated (" .. version .. " => " .. ServerVersion .."), press F9 twice to load the updated version.") end) end, 3)
+				ScriptMsg("New version available: " .. ServerVersion)
+				ScriptMsg("Updating, please don't press F9")
+				DelayAction(function() DownloadFile(UPDATE_URL, UPDATE_FILE_PATH, function() ScriptMsg("Successfully updated (" .. version .. " => " .. ServerVersion .."), press F9 twice to load the updated version.") end) end, 3)
 			else
-				AutoupdaterMsg("You got the latest version ("..ServerVersion..")")
+				ScriptMsg("You got the latest version ("..version..")")
 			end
 		end
 	else
-		AutoupdaterMsg("Error downloading version info")
+		ScriptMsg("Error downloading version info")
 	end
 end
+--
 
 require 'VPrediction'
 
@@ -41,7 +42,7 @@ local Player, EnemyHeroes = GetMyHero(), GetEnemyHeroes()
 local Target, VP, SOWi, SxOrb, Menu, Minions, DrawLeft, DrawRight, DrawTop
 local QCasting, WCasting, ECasting, PassiveBuff = false, false, false, false
 local SOWLoaded, SxOrbLoaded, MMALoaded, SACLoaded = false, false, false, false
-local QRangeSqr = QRange * QRange
+local QRangeSqr, WRangeSqr = QRange * QRange, WRange * WRange
 
 local function Weaving()
 	if Menu.Weave and (QCasting or WCasting or ECasting or PassiveBuff) then
@@ -55,7 +56,7 @@ local function CastQ(unit)
 		CastSpell(_Q, unit)
 	else
 		local Position, HitChance = VP:GetPredictedPos(unit, QDelay, QSpeed, Player, false)
-		local V, Vn, Vr, Tx, Ty, Tz, Distance, Radius, TopX, TopY, TopZ, LeftX, LeftY, LeftZ, RightX, RightY, RightZ, Left, Right, Top, Poly, i, Minion, Champion
+		local V, Vn, Vr, Tx, Ty, Tz, Distance, Radius, TopX, TopY, TopZ, LeftX, LeftY, LeftZ, RightX, RightY, RightZ, Left, Right, Top, Poly, Minion, Champion, i
 
 		V = Vector(Position) - Vector(Player)
 
@@ -114,11 +115,13 @@ end
 local function OrbLoad()
 	if _G.MMA_Loaded then
 		MMALoaded = true
+		ScriptMsg("Found MMA")
 	elseif _G.AutoCarry then
 		SACLoaded = true
+		ScriptMsg("Found SAC")
 	elseif _G.Reborn_Loaded then
 		DelayAction(OrbLoad, 1)
-		-- r84 takes a while to load
+		ScriptMsg("Waiting for SAC to fully load...")
 	elseif FileExist(LIB_PATH .. "SxOrbWalk.lua") then
 		require 'SxOrbWalk'
 		SxOrb = SxOrbWalk()
@@ -126,6 +129,7 @@ local function OrbLoad()
 		Menu:addParam("info1", "SxOrbwalker settings", SCRIPT_PARAM_INFO, "")
 		SxOrb:LoadToMenu(Menu)
 		SxOrbLoaded = true
+		ScriptMsg("Loaded SxOrb")
 	elseif FileExist(LIB_PATH .. "SOW.lua") then
 		require 'SOW'
 		SOWi = SOW(VP)
@@ -133,17 +137,19 @@ local function OrbLoad()
 		Menu:addParam("info1", "SOW settings", SCRIPT_PARAM_INFO, "")
 		SOWi:LoadToMenu(Menu)
 		SOWLoaded = true
+		ScriptMsg("Loaded SOW")
+	else
+		ScriptMsg("Using AllClass TS")
 	end
 end
 
 local function OrbTarget()
 	local T
 	if MMALoaded then T = _G.MMA_Target end
-	if SACLoaded then T = _G.AutoCarry.Crosshair.Attack_Crosshair.target end -- will spam bugs until SAC fully loads
+	if SACLoaded then T = _G.AutoCarry.Crosshair.Attack_Crosshair.target end
 	if SxOrbLoaded then T = SxOrb:GetTarget() end
 	if SOWLoaded then T = SOWi:GetTarget() end
-	--if T and T.type == Player.type then return T end
-	if T then return T end
+	if T and T.type == Player.type then return T end
 	return TS.target
 end
 
@@ -151,7 +157,7 @@ function OnLoad()
 	VP = VPrediction()
 	TS = TargetSelector(TARGET_LESS_CAST_PRIORITY, QMaxRange, DAMAGE_PHYSICAL)
 	Minions = minionManager(MINION_ENEMY, QRange, Player, MINION_SORT_MAXHEALTH_ASC)
-	DelayAction(OrbLoad, 5)
+	DelayAction(OrbLoad, 1)
 
 	Menu = scriptConfig("fbLucian", "fbLucian")
 	Menu:addSubMenu("Combo", "Combo")
@@ -180,13 +186,17 @@ function OnTick()
 	if not Target then return end
 
 	-- Killsteal
-	-- Gotta rewrite with EnemyHeroes since TS adheres to player selected target
 	if Menu.KS then
-		if getDmg("Q", TS.target, Player) > TS.target.health then
-			CastQ(TS.target)
-		end
-		if getDmg("W", TS.target, Player) > TS.target.health then
-			CastW(TS.target)
+		local i, Champion
+		for i, Champion in pairs(EnemyHeroes) do
+			if ValidTarget(Champion) then
+				if GetDistanceSqr(Champion, Player) <= QRangeSqr and getDmg("Q", Champion, Player) > Champion.health then
+					CastQ(Champion)
+				end
+				if GetDistanceSqr(Champion, Player) <= WRangeSqr and getDmg("W", Champion, Player) > Champion.health then
+					CastW(Champion)
+				end
+			end
 		end
 	end
 
@@ -217,7 +227,7 @@ function OnProcessSpell(unit, spell)
 			QCasting = true
 			DelayAction(function() QCasting = false end, spell.windUpTime + 0.28)
 			-- weaving is screwed without the extra delay on Q, likely due to the spells history
-			-- .28 is the lowest value that worked consistently well for me
+			-- .28 is the lowest value that worked consistently well for me in testing
 		end
 		if spell.name == "LucianW" then
 			WCasting = true
