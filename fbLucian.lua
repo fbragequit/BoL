@@ -5,13 +5,13 @@ local version = "0.2"
 -- Honda7's autoupdate
 local AUTOUPDATE = true
 
-local UPDATE_HOST = "raw.githubusercontent.com"
+local UPDATE_HOST = "raw.github.com"
 local UPDATE_PATH = "/fbragequit/BoL/master/fbLucian.lua" .. "?rand=" .. math.random(1, 10000)
 local VERSION_PATH = "/fbragequit/BoL/master/fbLucian.version" .. "?rand=" .. math.random(1, 10000)
 local UPDATE_URL = "https://" .. UPDATE_HOST .. UPDATE_PATH
 local UPDATE_FILE_PATH = SCRIPT_PATH .. GetCurrentEnv().FILE_NAME
 
-local function ScriptMsg(msg) print("<font color=\"#6699ff\"><b>fbLucian:</b></font> <font color=\"#FFFFFF\">" .. msg .. "</font>") end
+local function ScriptMsg(msg) print("<font color=\"#00ff00\"><b>fbLucian:</b></font> <font color=\"#FFFFFF\">" .. msg .. "</font>") end
 
 if AUTOUPDATE then
 	local ServerData = GetWebResult(UPDATE_HOST, VERSION_PATH)
