@@ -23,7 +23,7 @@ if AUTOUPDATE then
 				ScriptMsg("Updating, please don't press F9")
 				DelayAction(function() DownloadFile(UPDATE_URL, UPDATE_FILE_PATH, function() ScriptMsg("Successfully updated ("..version.." => "..ServerVersion.."), press F9 twice to load the updated version.") end) end, 3)
 			else
-				ScriptMsg("You have got the latest version ("..version..")")
+				ScriptMsg("You have got the latest version ("..version..")"..".")
 			end
 		end
 	else
