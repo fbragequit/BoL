@@ -1,8 +1,9 @@
 -- Simple Lucian by fbragequit
+-- http://botoflegends.com/forum/topic/33672-scriptfree-fblucian-simple-lucian-rework/
 if myHero.charName ~= "Lucian" then return end
-local version = "0.2"
+local version = "0.3"
 
--- Honda7's autoupdate (copypasted from SOW)
+-- Honda7's autoupdate
 local AUTOUPDATE = true
 
 local UPDATE_HOST = "raw.github.com"
@@ -23,7 +24,7 @@ if AUTOUPDATE then
 				ScriptMsg("Updating, please don't press F9")
 				DelayAction(function() DownloadFile(UPDATE_URL, UPDATE_FILE_PATH, function() ScriptMsg("Successfully updated ("..version.." => "..ServerVersion.."), press F9 twice to load the updated version.") end) end, 3)
 			else
-				ScriptMsg("You have got the latest version ("..version..")"..".")
+				ScriptMsg("You've got the latest version ("..version..")")
 			end
 		end
 	else
@@ -41,7 +42,7 @@ local AARange = 622
 local Player, EnemyHeroes = GetMyHero(), GetEnemyHeroes()
 local Target, VP, SOWi, SxOrb, Menu, Minions, DrawLeft, DrawRight, DrawTop
 local QCasting, WCasting, ECasting, PassiveBuff = false, false, false, false
-local SOWLoaded, SxOrbLoaded, MMALoaded, SACLoaded = false, false, false, false
+local SOWLoaded, SxOrbLoaded, MMALoaded, RebornLoaded, RevampedLoaded = false, false, false, false, false
 local QRangeSqr, WRangeSqr = QRange * QRange, WRange * WRange
 
 local function Weaving()
@@ -85,7 +86,7 @@ local function CastQ(unit)
 		for i, Champion in pairs(EnemyHeroes) do
 			local ToScreen = WorldToScreen(D3DXVECTOR3(Champion.x, Champion.y, Champion.z))
 			local ToPoint = Point(ToScreen.x, ToScreen.y)
-			if Poly:contains(ToPoint) then
+			if Poly:contains(ToPoint) and GetDistanceSqr(Champion, Player) <= QRangeSqr then
 				CastSpell(_Q, Champion)
 			end
 		end
@@ -93,7 +94,7 @@ local function CastQ(unit)
 		for i, Minion in pairs(Minions.objects) do
 			local ToScreen = WorldToScreen(D3DXVECTOR3(Minion.x, Minion.y, Minion.z))
 			local ToPoint = Point(ToScreen.x, ToScreen.y)
-			if Poly:contains(ToPoint) then
+			if Poly:contains(ToPoint) and GetDistanceSqr(Minion, Player) <= QRangeSqr then
 				CastSpell(_Q, Minion)
 			end
 		end
@@ -107,7 +108,7 @@ end
 
 local function CastW(unit)
 	local CastPosition, HitChance, Position = VP:GetLineCastPosition(unit, WDelay, WWidth, WRange, WSpeed, Player, true)
-	if CastPosition and HitChance >= 1 then
+	if CastPosition and HitChance >= 1 and GetDistanceSqr(CastPosition, Player) <= WRangeSqr then
 		CastSpell(_W, CastPosition.x, CastPosition.z)
 	end
 end
@@ -117,16 +118,18 @@ local function OrbLoad()
 		MMALoaded = true
 		ScriptMsg("Found MMA")
 	elseif _G.AutoCarry then
-		SACLoaded = true
-		ScriptMsg("Found SAC")
+		if _G.AutoCarry.Helper then
+			RebornLoaded = true
+			ScriptMsg("Found SAC: Reborn")
+		else
+			RevampedLoaded = true
+			ScriptMsg("Found SAC: Revamped")
+		end
 	elseif _G.Reborn_Loaded then
 		DelayAction(OrbLoad, 1)
-		ScriptMsg("Waiting for SAC to fully load...")
 	elseif FileExist(LIB_PATH .. "SxOrbWalk.lua") then
 		require 'SxOrbWalk'
 		SxOrb = SxOrbWalk()
-		Menu:addParam("info0", "", SCRIPT_PARAM_INFO, "")
-		Menu:addParam("info1", "SxOrbwalker settings", SCRIPT_PARAM_INFO, "")
 		SxOrb:LoadToMenu(Menu)
 		SxOrbLoaded = true
 		ScriptMsg("Loaded SxOrb")
@@ -146,7 +149,8 @@ end
 local function OrbTarget()
 	local T
 	if MMALoaded then T = _G.MMA_Target end
-	if SACLoaded then T = _G.AutoCarry.Crosshair.Attack_Crosshair.target end
+	if RebornLoaded then T = _G.AutoCarry.Crosshair.Attack_Crosshair.target end
+	if RevampedLoaded then T = _G.AutoCarry.Orbwalker.target end
 	if SxOrbLoaded then T = SxOrb:GetTarget() end
 	if SOWLoaded then T = SOWi:GetTarget() end
 	if T and T.type == Player.type then return T end
