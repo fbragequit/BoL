@@ -1,7 +1,7 @@
--- Simple Lucian by fbragequit
+-- fbLucian by fbragequit
 -- http://botoflegends.com/forum/topic/33672-scriptfree-fblucian-simple-lucian-rework/
 if myHero.charName ~= "Lucian" then return end
-local version = "0.3"
+local version = "0.31"
 
 -- Honda7's autoupdate
 local AUTOUPDATE = true
@@ -240,6 +240,16 @@ function OnProcessSpell(unit, spell)
 		if spell.name == "LucianE" then
 			ECasting = true
 			DelayAction(function() ECasting = false end, spell.windUpTime)
+			if MMALoaded then
+				_G.MMA_ResetAutoAttack()
+			elseif RebornLoaded then
+				AutoCarry.Orbwalker:ResetAttackTimer()
+				print("reset aa")
+			elseif SxOrbLoaded then
+				SxOrb:ResetAA()
+			elseif SOWLoaded then
+				SOW:resetAA()
+			end
 		end
 	end
 end
