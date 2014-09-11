@@ -244,7 +244,6 @@ function OnProcessSpell(unit, spell)
 				_G.MMA_ResetAutoAttack()
 			elseif RebornLoaded then
 				AutoCarry.Orbwalker:ResetAttackTimer()
-				print("reset aa")
 			elseif SxOrbLoaded then
 				SxOrb:ResetAA()
 			elseif SOWLoaded then
