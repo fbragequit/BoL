@@ -1,7 +1,7 @@
 -- fbLucian by fbragequit
 -- http://botoflegends.com/forum/topic/33672-scriptfree-fblucian-simple-lucian-rework/
 if myHero.charName ~= "Lucian" then return end
-local version = "0.31"
+local version = "0.32"
 
 -- Honda7's autoupdate
 local AUTOUPDATE = true
