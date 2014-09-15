@@ -1,7 +1,7 @@
 -- fbLucian by fbragequit
 -- http://botoflegends.com/forum/topic/33672-scriptfree-fblucian-simple-lucian-rework/
 if myHero.charName ~= "Lucian" then return end
-local version = "0.4"
+local version = "0.41"
 
 -- Honda7's autoupdate
 local AUTOUPDATE = true
@@ -50,20 +50,6 @@ local function Weaving()
 		return true
 	end
 	return false
-end
-
-local function Killsteal()
-	local i, Champion
-	for i, Champion in pairs(EnemyHeroes) do
-		if ValidTarget(Champion) then
-			if GetDistanceSqr(Champion, Player) <= QRangeSqr and getDmg("Q", Champion, Player) > Champion.health then
-				CastQ(Champion)
-			end
-			if GetDistanceSqr(Champion, Player) <= WRangeSqr and getDmg("W", Champion, Player) > Champion.health then
-				CastW(Champion)
-			end
-		end
-	end
 end
 
 local function CastQ(unit)
@@ -180,6 +166,20 @@ local function OrbReset()
 		SxOrb:ResetAA()
 	elseif SOWLoaded then
 		SOW:resetAA()
+	end
+end
+
+local function Killsteal()
+	local i, Champion
+	for i, Champion in pairs(EnemyHeroes) do
+		if ValidTarget(Champion) then
+			if GetDistanceSqr(Champion, Player) <= QRangeSqr and getDmg("Q", Champion, Player) > Champion.health then
+				CastQ(Champion)
+			end
+			if GetDistanceSqr(Champion, Player) <= WRangeSqr and getDmg("W", Champion, Player) > Champion.health then
+				CastW(Champion)
+			end
+		end
 	end
 end
 
