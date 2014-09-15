@@ -1,7 +1,7 @@
 -- fbLucian by fbragequit
 -- http://botoflegends.com/forum/topic/33672-scriptfree-fblucian-simple-lucian-rework/
 if myHero.charName ~= "Lucian" then return end
-local version = "0.32"
+local version = "0.4"
 
 -- Honda7's autoupdate
 local AUTOUPDATE = true
@@ -50,6 +50,20 @@ local function Weaving()
 		return true
 	end
 	return false
+end
+
+local function Killsteal()
+	local i, Champion
+	for i, Champion in pairs(EnemyHeroes) do
+		if ValidTarget(Champion) then
+			if GetDistanceSqr(Champion, Player) <= QRangeSqr and getDmg("Q", Champion, Player) > Champion.health then
+				CastQ(Champion)
+			end
+			if GetDistanceSqr(Champion, Player) <= WRangeSqr and getDmg("W", Champion, Player) > Champion.health then
+				CastW(Champion)
+			end
+		end
+	end
 end
 
 local function CastQ(unit)
@@ -157,6 +171,18 @@ local function OrbTarget()
 	return TS.target
 end
 
+local function OrbReset()
+	if MMALoaded then
+		_G.MMA_ResetAutoAttack()
+	elseif RebornLoaded then
+		AutoCarry.Orbwalker:ResetAttackTimer()
+	elseif SxOrbLoaded then
+		SxOrb:ResetAA()
+	elseif SOWLoaded then
+		SOW:resetAA()
+	end
+end
+
 function OnLoad()
 	VP = VPrediction()
 	TS = TargetSelector(TARGET_LESS_CAST_PRIORITY, QMaxRange, DAMAGE_PHYSICAL)
@@ -165,11 +191,14 @@ function OnLoad()
 
 	Menu = scriptConfig("fbLucian", "fbLucian")
 	Menu:addSubMenu("Combo", "Combo")
-	Menu.Combo:addParam("Key", "Hotkey", SCRIPT_PARAM_ONKEYDOWN, false, 32)
+	Menu.Combo:addParam("HoldKey", "OnHold Key", SCRIPT_PARAM_ONKEYDOWN, false, 32)
 	Menu.Combo:addParam("Q", "Use Q", SCRIPT_PARAM_ONOFF, true)
 	Menu.Combo:addParam("W", "Use W", SCRIPT_PARAM_ONOFF, true)
 	Menu:addSubMenu("Harass", "Harass")
-	Menu.Harass:addParam("Key", "Hotkey", SCRIPT_PARAM_ONKEYDOWN, false, string.byte("C"))
+	Menu.Harass:addParam("HoldKey1", "OnHold Key #1", SCRIPT_PARAM_ONKEYDOWN, false, string.byte("C"))
+	Menu.Harass:addParam("HoldKey2", "OnHold Key #2", SCRIPT_PARAM_ONKEYDOWN, false, string.byte("N"))
+	Menu.Harass:addParam("ToggleKey", "Toggle Key", SCRIPT_PARAM_ONKEYTOGGLE, false, string.byte("B"))
+	Menu.Harass:addParam("ManaLimiter", "Mana Limiter", SCRIPT_PARAM_SLICE, 0, 0, 100, 0)
 	Menu.Harass:addParam("Q", "Use Q", SCRIPT_PARAM_ONOFF, true)
 	Menu.Harass:addParam("W", "Use W", SCRIPT_PARAM_ONOFF, false)
 	Menu:addSubMenu("Drawing", "Drawing")
@@ -189,25 +218,13 @@ function OnTick()
 	Target = OrbTarget()
 	if not Target then return end
 
-	-- Killsteal
 	if Menu.KS then
-		local i, Champion
-		for i, Champion in pairs(EnemyHeroes) do
-			if ValidTarget(Champion) then
-				if GetDistanceSqr(Champion, Player) <= QRangeSqr and getDmg("Q", Champion, Player) > Champion.health then
-					CastQ(Champion)
-				end
-				if GetDistanceSqr(Champion, Player) <= WRangeSqr and getDmg("W", Champion, Player) > Champion.health then
-					CastW(Champion)
-				end
-			end
-		end
+		Killsteal()
 	end
 
-	-- Combo/harass
 	if Weaving() then return end
 
-	if Menu.Combo.Key then
+	if Menu.Combo.HoldKey then
 		if Menu.Combo.Q then
 			CastQ(Target)
 		end
@@ -215,7 +232,7 @@ function OnTick()
 			CastW(Target)
 		end
 	end
-	if Menu.Harass.Key then
+	if (Menu.Harass.HoldKey1 or Menu.Harass.HoldKey2 or Menu.Harass.ToggleKey) and (Player.mana >= Player.maxMana * (Menu.Harass.ManaLimiter / 100)) then
 		if Menu.Harass.Q then
 			CastQ(Target)
 		end
@@ -239,16 +256,7 @@ function OnProcessSpell(unit, spell)
 		end
 		if spell.name == "LucianE" then
 			ECasting = true
-			DelayAction(function() ECasting = false end, spell.windUpTime)
-			if MMALoaded then
-				_G.MMA_ResetAutoAttack()
-			elseif RebornLoaded then
-				AutoCarry.Orbwalker:ResetAttackTimer()
-			elseif SxOrbLoaded then
-				SxOrb:ResetAA()
-			elseif SOWLoaded then
-				SOW:resetAA()
-			end
+			DelayAction(function() ECasting = false OrbReset() end, spell.windUpTime)
 		end
 	end
 end
