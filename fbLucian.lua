@@ -1,7 +1,7 @@
 -- fbLucian by fbragequit
 -- http://botoflegends.com/forum/topic/33672-scriptfree-fblucian-simple-lucian-rework/
 if myHero.charName ~= "Lucian" then return end
-local version = "0.41"
+local version = "0.42"
 
 -- Honda7's autoupdate
 local AUTOUPDATE = true
@@ -185,7 +185,7 @@ end
 
 function OnLoad()
 	VP = VPrediction()
-	TS = TargetSelector(TARGET_LESS_CAST_PRIORITY, QMaxRange, DAMAGE_PHYSICAL)
+	TS = TargetSelector(TARGET_LESS_CAST_PRIORITY, QMaxRange, DAMAGE_PHYSICAL, false)
 	Minions = minionManager(MINION_ENEMY, QRange, Player, MINION_SORT_MAXHEALTH_ASC)
 	DelayAction(OrbLoad, 1)
 
