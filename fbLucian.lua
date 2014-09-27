@@ -1,7 +1,7 @@
 -- fbLucian by fbragequit
 -- http://botoflegends.com/forum/topic/33672-scriptfree-fblucian-simple-lucian-rework/
 if myHero.charName ~= "Lucian" then return end
-local version = "0.42"
+local version = "0.5"
 
 -- Honda7's autoupdate
 local AUTOUPDATE = true
@@ -43,7 +43,7 @@ local Player, EnemyHeroes = GetMyHero(), GetEnemyHeroes()
 local Target, VP, SOWi, SxOrb, Menu, Minions, DrawLeft, DrawRight, DrawTop
 local QCasting, WCasting, ECasting, PassiveBuff = false, false, false, false
 local SOWLoaded, SxOrbLoaded, MMALoaded, RebornLoaded, RevampedLoaded = false, false, false, false, false
-local QRangeSqr, WRangeSqr = QRange * QRange, WRange * WRange
+local QRangeSqr, WRangeSqr, AARangeSqr = QRange * QRange, WRange * WRange, AARange * AARange
 
 local function Weaving()
 	if Menu.Weave and (QCasting or WCasting or ECasting or PassiveBuff) then
@@ -153,15 +153,17 @@ local function OrbTarget()
 	if RevampedLoaded then T = _G.AutoCarry.Orbwalker.target end
 	if SxOrbLoaded then T = SxOrb:GetTarget() end
 	if SOWLoaded then T = SOWi:GetTarget() end
-	if T and T.type == Player.type then return T end
-	return TS.target
+	if T and T.type == Player.type and ValidTarget(T, AARange) then return T end
+
+	AA_TS:update()
+	if AA_TS.target then return AA_TS.target end
+	Q_TS:update()
+	if Q_TS.target then return Q_TS.target end
 end
 
 local function OrbReset()
 	if MMALoaded then
 		_G.MMA_ResetAutoAttack()
-	elseif RebornLoaded then
-		AutoCarry.Orbwalker:ResetAttackTimer()
 	elseif SxOrbLoaded then
 		SxOrb:ResetAA()
 	elseif SOWLoaded then
@@ -185,7 +187,8 @@ end
 
 function OnLoad()
 	VP = VPrediction()
-	TS = TargetSelector(TARGET_LESS_CAST_PRIORITY, QMaxRange, DAMAGE_PHYSICAL, false)
+	Q_TS = TargetSelector(TARGET_LESS_CAST_PRIORITY, QMaxRange, DAMAGE_PHYSICAL, false)
+	AA_TS = TargetSelector(TARGET_LESS_CAST_PRIORITY, AARange, DAMAGE_PHYSICAL, false)
 	Minions = minionManager(MINION_ENEMY, QRange, Player, MINION_SORT_MAXHEALTH_ASC)
 	DelayAction(OrbLoad, 1)
 
@@ -212,16 +215,12 @@ function OnLoad()
 end
 
 function OnTick()
-	TS:update()
 	Minions:update()
-
 	Target = OrbTarget()
+	
+	if Menu.KS then Killsteal() end
+
 	if not Target then return end
-
-	if Menu.KS then
-		Killsteal()
-	end
-
 	if Weaving() then return end
 
 	if Menu.Combo.HoldKey then
